@@ -11,7 +11,7 @@ namespace Citrix\Entity;
  * @uses \Citrix\Entity\EntityAware
  *      
  */
-class Group extends EntityAbstract implements EntityAware
+class Meeting extends EntityAbstract implements EntityAware
 {
     
     /**

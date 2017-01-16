@@ -37,11 +37,19 @@ class GoToMeeting extends ServiceAbstract implements CitrixApiAware
 		$this->setHttpMethod('POST')
 				->setUrl($url)
 				->setParams($params)
-				->sendRequest($this->getClient()->getAccessToken());
-		//->processResponse();
+				->sendRequest($this->getClient()->getAccessToken())
+		        ->processResponse(true, "\\Citrix\\Entity\\Meeting");
 
 		return $this->getResponse();
 	}
+
+    public function getPast(){
+        $url = $this->baseURL . 'historicalMeetings';
+        $this->setHttpMethod('GET')
+				->setUrl($url)
+				->sendRequest($this->getClient()->getAccessToken())
+		        ->processResponse(false, "\\Citrix\\Entity\\PastMeeting");
+    }
 
     /**
      *
@@ -67,7 +75,7 @@ class GoToMeeting extends ServiceAbstract implements CitrixApiAware
      * @param bool $single    If we expect a single entity from the server, make this true.
      *                        Single webinar request wasn't working because it was looping its properties.
      */
-    public function processResponse($single = false){
+    public function processResponse($single = false, $className){
         $response = $this->getResponse();
         $this->reset();
 
@@ -80,22 +88,16 @@ class GoToMeeting extends ServiceAbstract implements CitrixApiAware
         }
         
         if($single === true) {
-            if(isset($response['meetingid'])){
-                $meeting = new Meeting($this->getClient());
-                $meeting->setData($response)->populate();
-                $this->setResponse($meeting);
-            }
-            
-            
+            $obj = new $className($this->getClient);
+            $obj->setData($response)->populate();
+            $this->setResponse($meeting);
         } else {
             $collection = new \ArrayObject(array());
 
             foreach ($response as $entity){
-                if(isset($response['meetingid'])){
-                    $meeting = new Meeting($this->getClient());
-                    $meeting->setData($entity)->populate();
-                    $collection->append($meeting);
-                }                
+                $obj = new $className($this->getClient);
+                $obj->setData($entity)->populate();
+                $collection->append($obj);          
                         
             }
 
